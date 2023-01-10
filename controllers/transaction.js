@@ -49,25 +49,24 @@ console.log("dfdf",res.id)
 });
 // transaction//auth
 //api/v1/checkout/purchase
-router.post("/purchase", async (req, res) => {
+router.post("/purchase",auth, async (req, res) => {
   // try {
-  const owner = req.session.user._id;
-  let user = req.session.user;
+    console.log(res.id)
+    const id =res.id; 
   let payload = req.body;
 
-  console.log("------>owner", owner);
   console.log("------>payload", payload);
 
   //find cart and user
 
-  if (!user) {
-    res.status(400).json({
-      success: false,
-      message: "user with this id not found.",
-    });
-  }
+  // if (!user) {
+  //   res.status(400).json({
+  //     success: false,
+  //     message: "user with this id not found.",
+  //   });
+  // }
   const order = await Order.findOne({
-    owner: owner,
+    owner: id,
   });
   if (!order) {
     res.status(400).json({
@@ -75,13 +74,13 @@ router.post("/purchase", async (req, res) => {
       message: "order with this id not found.",
     });
   }
-  console.log("------>session.user.email", user.email);
+  // console.log("------>session.user.email", user.email);
 
   if (order) {
-    payload = { ...payload, amount: order.account, email: user.email };
+    payload = { ...payload, amount: order.account, email: id.email };
     stripe.customers
       .create({
-        email: user.email,
+        email: id.email,
         source: req.body.stripeToken,
       })
       .then((customer) => {
@@ -235,6 +234,21 @@ router.post("/createtransaction", auth, async (req, res) => {
 
   const getData = await Testtransaction.findOne({ owner: owner });
   var user = await User.findOne({ _id: owner });
+});
+
+router.get("/getpubkey", auth, async (req, res) => {
+  if (publishKey) {
+    return res.status(200).json({
+      success: true,
+      message: "it is publishkey.",
+      publishKey: publishKey,
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: "there is no publishkey.",
+    });
+  }
 });
 
 module.exports = router;

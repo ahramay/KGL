@@ -8,8 +8,8 @@ const { auth, admin } = require("../middlewares/authorize");
 
 router.get("/getcart", auth, async (req, res) => {
   // const owner = req.session.user._id;
-  console.log(res.id)
-const id =res.id;
+  console.log(res.id);
+  const id = res.id;
   try {
     const cart = await Cart.findOne({ owner: id });
     if (!cart) {
@@ -23,7 +23,8 @@ const id =res.id;
         message: "get your cart.",
         data: cart,
       });
-    }s
+    }
+    s;
   } catch (error) {
     console.log("==========>", error);
 
@@ -39,13 +40,13 @@ const id =res.id;
 router.post("/", auth, async (req, res) => {
   // const owner = req.session.user;
   const { itemId, quantity } = req.body;
-  console.log(res.id)
-const id =res.id;
+  console.log(res.id);
+  const id = res.id;
   console.log("=======> quantity ", quantity);
   console.log("=======> itemId", itemId);
 
   try {
-    const cart = await Cart.findOne({ owner:id });
+    const cart = await Cart.findOne({ owner: id });
     const item = await Product.findOne({ _id: itemId });
 
     if (!item) {
@@ -141,6 +142,7 @@ const id =res.id;
 router.delete("/decreaseitem", auth, async (req, res) => {
   const owner = req.session.user;
   const itemId = req.query.itemId;
+
   try {
     let cart = await Cart.findOne({ owner });
 
@@ -189,12 +191,13 @@ router.delete("/decreaseitem", auth, async (req, res) => {
 });
 
 router.post("/decreasequantity", auth, async (req, res) => {
-  const owner = req.session.user;
   const { itemId } = req.body;
-
   console.log("=======> itemId del one", itemId);
 
-  let cart = await Cart.findOne({ owner });
+  console.log(res.id);
+  const id = res.id;
+
+  let cart = await Cart.findOne({ owner: id });
   let item = await Product.findOne({ _id: itemId });
 
   if (!cart) {
