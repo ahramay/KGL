@@ -50,118 +50,208 @@ console.log("dfdf",res.id)
 // transaction//auth
 //api/v1/checkout/purchase
 router.post("/purchase",auth, async (req, res) => {
-  // try {
-    console.log(res.id)
-    const id =res.id; 
-  let payload = req.body;
-
-  console.log("------>payload", payload);
-
-  //find cart and user
-
-  // if (!user) {
-  //   res.status(400).json({
-  //     success: false,
-  //     message: "user with this id not found.",
-  //   });
-  // }
-  const order = await Order.findOne({
-    owner: id,
-  });
-  if (!order) {
-    res.status(400).json({
-      success: false,
-      message: "order with this id not found.",
-    });
-  }
-  // console.log("------>session.user.email", user.email);
-
-  if (order) {
-    payload = { ...payload, amount: order.account, email: id.email };
-    stripe.customers
-      .create({
-        email: id.email,
-        source: req.body.stripeToken,
-      })
-      .then((customer) => {
-        console.log("========>stripeToken", req.body.stripeToken);
-        console.log("========>", req.body.amount);
-        stripe.charges.create({
-          amount: req.body.amount, //*
-          currency: "usd",
-          description: "Tests Charges",
-          customer: customer.id,
-        });
-      })
-      .then((charge) => {
-        console.log("===========> charge here", charge);
-        return res.status(200).json({
-          success: true,
-          message: "customer and charger is successfull.",
-          data: charge,
-        });
-      })
-      .catch((err) => {
-        console.log("==========>", err);
-        // If some error occurs
+  try {
+      let {  id } = req.body
+      console.log("ds",req.body.amount)
+      const charge = await stripe.paymentIntents.create({
+        amount: req.body.amount,
+        currency: "USD",
+        description: "Tests Charges",
+        payment_method: id,
+        confirm: true,
+      });
+      if (!charge) {
         return res.status(400).json({
           success: false,
-          message: "charge is faild.",
+          message: "charge is failed.",
           err,
         });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "customer and charger is successfull.",
+        data: charge,
       });
-
-    // if (charge.status === Success) {
-    //   const nanoid = customAlphabet("ABCDEFGHIJKL01234MNOPQRSTUVWXYZ56789", 8); //abcdefghijklmnopqrstuvwxyz
-    //   //customAlphabet
-    //   const alphanumeriCode = nanoid();
-    //   console.log("==============nanoid", alphanumeriCode); // sample outputs => 455712511712968405, 753952709650782495
-
-    //   //delete cart after paid successfull
-    //   const data = await Cart.findByIdAndDelete({ _id: owner });
-    //   return res.status(200).json({
-    //     success: true,
-    //     message: "payment successful and to db and delete from cart",
-    //     data: data,
-    //   });
-    // } else {
-    //   res.status(400).json({
-    //     success: false,
-    //     message: "charge not found",
-    //   });
-    // }
-
-    // const addTransaction = await Transaction.create({
-    //   owner,
-    //   cartItems: [...order.cartitems],
-    //   bill: order.amount,
-    //   paidcustomer: customer.id,
-    //   paidcharges: charge,
-    //   code: alphanumeriCode,
-    // });
-    // if (!addTransaction) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "transaction is not created.",
-    //   });
-    // }
-
-    // return res.status(200).json({
-    //   success: true,
-    //   message: "paid successful and add to transaction",
-    //   data: addTransaction,
-    // });
-    //}
-    // } catch (error) {
-    //   console.log(error);
-
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "invalid request",
-    //     error,
-    //   });
+    }
+   catch (err) {
+    console.log("==========>", err);
+    // If some error occurs
+    return res.status(400).json({
+      success: false,
+      message: "charge is failed.",
+      err,
+    });
   }
+
+  // if (charge.status === Success) {
+  //   const nanoid = customAlphabet("ABCDEFGHIJKL01234MNOPQRSTUVWXYZ56789", 8); //abcdefghijklmnopqrstuvwxyz
+  //   //customAlphabet
+  //   const alphanumeriCode = nanoid();
+  //   console.log("==============nanoid", alphanumeriCode);
+
+  //   //delete cart after paid successfull
+  //   const data = await Cart.findByIdAndDelete({ _id: owner });
+  //   return res.status(200).json({
+  //     success: true,
+  //     message: "payment successful and delete from cart",
+  //     data: data,
+  //   });
+  // } else {
+  //   res.status(400).json({
+  //     success: false,
+  //     message: "charge not found",
+  //   });
+  // }
+
+  // const addTransaction = await Transaction.create({
+  //   owner,
+  //   cartItems: [...order.cartitems],
+  //   bill: order.amount,
+  //   paidcustomer: customer.id,
+  //   paidcharges: charge,
+  //   code: alphanumeriCode,
+  // });
+  // if (!addTransaction) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "transaction is not created.",
+  //   });
+  // }
+
+  // const updateOrder = await Order.findOneAndUpdate(
+  //   { owner: owner },
+  //   { status: "In transit" },
+  //   { new: true }
+  // );
+  // return res.status(200).json({
+  //   success: true,
+  //   message: "paid successful and add to transaction",
+  //   data: addTransaction,
+  // });
+  //}
+  // } catch (error) {
+  //   console.log(error);
+
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "invalid request",
+  //     error,
+  //   });
 });
+// router.post("/purchase",auth, async (req, res) => {
+//   // try {
+//     console.log(res.id)
+//     const id =res.id; 
+//   let payload = req.body;
+
+//   console.log("------>payload", payload);
+
+//   //find cart and user
+
+//   // if (!user) {
+//   //   res.status(400).json({
+//   //     success: false,
+//   //     message: "user with this id not found.",
+//   //   });
+//   // }
+//   const order = await Order.findOne({
+//     owner: id,
+//   });
+//   if (!order) {
+//     res.status(400).json({
+//       success: false,
+//       message: "order with this id not found.",
+//     });
+//   }
+//   // console.log("------>session.user.email", user.email);
+
+//   if (order) {
+//     payload = { ...payload, amount: order.account, email: id.email };
+//     stripe.customers
+//       .create({
+//         email: id.email,
+//         source: req.body.stripeToken,
+//       })
+//       .then((customer) => {
+//         console.log("========>stripeToken", req.body.stripeToken);
+//         console.log("========>", req.body.amount);
+//         stripe.charges.create({
+//           amount: req.body.amount, //*
+//           currency: "usd",
+//           description: "Tests Charges",
+//           customer: customer.id,
+//         });
+//       })
+//       .then((charge) => {
+//         console.log("===========> charge here", charge);
+//         return res.status(200).json({
+//           success: true,
+//           message: "customer and charger is successfull.",
+//           data: charge,
+//         });
+//       })
+//       .catch((err) => {
+//         console.log("==========>", err);
+//         // If some error occurs
+//         return res.status(400).json({
+//           success: false,
+//           message: "charge is faild.",
+//           err,
+//         });
+//       });
+
+//     // if (charge.status === Success) {
+//     //   const nanoid = customAlphabet("ABCDEFGHIJKL01234MNOPQRSTUVWXYZ56789", 8); //abcdefghijklmnopqrstuvwxyz
+//     //   //customAlphabet
+//     //   const alphanumeriCode = nanoid();
+//     //   console.log("==============nanoid", alphanumeriCode); // sample outputs => 455712511712968405, 753952709650782495
+
+//     //   //delete cart after paid successfull
+//     //   const data = await Cart.findByIdAndDelete({ _id: owner });
+//     //   return res.status(200).json({
+//     //     success: true,
+//     //     message: "payment successful and to db and delete from cart",
+//     //     data: data,
+//     //   });
+//     // } else {
+//     //   res.status(400).json({
+//     //     success: false,
+//     //     message: "charge not found",
+//     //   });
+//     // }
+
+//     // const addTransaction = await Transaction.create({
+//     //   owner,
+//     //   cartItems: [...order.cartitems],
+//     //   bill: order.amount,
+//     //   paidcustomer: customer.id,
+//     //   paidcharges: charge,
+//     //   code: alphanumeriCode,
+//     // });
+//     // if (!addTransaction) {
+//     //   return res.status(400).json({
+//     //     success: false,
+//     //     message: "transaction is not created.",
+//     //   });
+//     // }
+
+//     // return res.status(200).json({
+//     //   success: true,
+//     //   message: "paid successful and add to transaction",
+//     //   data: addTransaction,
+//     // });
+//     //}
+//     // } catch (error) {
+//     //   console.log(error);
+
+//     //   return res.status(400).json({
+//     //     success: false,
+//     //     message: "invalid request",
+//     //     error,
+//     //   });
+//   }
+// });
 //api/v1/checkout/createtransaction
 
 router.get("/getorder", auth, async (req, res) => {
