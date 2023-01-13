@@ -37,11 +37,153 @@ router.get("/getcart", auth, async (req, res) => {
 });
 
 //add cart
+// const auths = async (req, res, next) => {
+//   const token =
+//     req.body.token ||
+//     req.query.token ||
+//     req.cookies.access_token ||
+//     req.header("x-auth-token");
+//   if (!token) {
+//     return res.status(400).json({
+//       message: "No token provided.",
+//     });
+//   }
+//   if (token) {
+//     jwt.verify(token, process.env.TOKEN_SECRET, (err, decodedToken) => {
+//       if (err) {
+//         return res.status(400).json({
+//           message: "Invalid token.",
+//         });
+//       }
+//       console.log("decoded ===>>> ", decodedToken);
+//       const id = decodedToken.id;
+//       User.findOne({ _id: id })
+//         .then((user) => {
+//           if (!user) {
+//             res.status(401).json({
+//               message: "Invalid token provided.",
+//             });
+//           }
+//           req.user = user;
+//           next();
+//         })
+//         .catch((err) => {
+//           throw err;
+//         });
+//     });
+//   }
+// };
+
+
+// router.post("/", auth, async (req, res) => {
+//   const owner = req.session.user;
+//   // const itemId = req.query;
+//   // const quantity = req.query;
+//   const { itemId, quantity } = req.body;
+
+//   console.log("=======> quantity ", quantity);
+//   console.log("=======> itemId", itemId);
+
+//   try {
+//     const cart = await Cart.findOne({ owner });
+//     const item = await Product.findOne({ _id: itemId });
+
+//     if (!item) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "item not found",
+//         error,
+//       });
+//     }
+//     if (!quantity) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "please give your quantity ",
+//         error,
+//       });
+//     }
+//     const price = item.price;
+//     const name = item.name;
+//     const description = item.description;
+//     var subtotal = item.price;
+
+//     console.log("=======> quantity ", quantity);
+//     console.log("=======> itemId", itemId);
+//     //If cart already exists for user,
+//     if (cart)
+//  {
+//       const itemIndex = cart.items.findIndex((item) => item.itemId == itemId);
+//       console.log("--------->itemIndex", itemIndex);
+//       //check if product exists or not
+
+//       if (itemIndex > -1) {
+//         let product = cart.items[itemIndex];
+//         product.quantity += quantity;
+//         product.subtotal = parseInt(product.price * product.quantity);
+
+//         console.log("======>product", product);
+
+//         cart.bill = cart.items.reduce((acc, curr) => {
+//           return acc + curr.quantity * curr.price;
+//         }, 0);
+
+//         cart.items[itemIndex] = product;
+//         await cart.save();
+//         return res.status(200).json({
+//           success: true,
+//           message: "Cart is Added successfully",
+//           data: cart,
+//         });
+//       } else {
+//         cart.items.push({
+//           itemId,
+//           name,
+//           quantity,
+//           price,
+//           description,
+//           subtotal,
+//         });
+//         cart.bill = cart.items.reduce((acc, curr) => {
+//           return acc + curr.quantity * curr.price;
+//         }, 0);
+
+//         await cart.save();
+//         return res.status(200).json({
+//           success: true,
+//           message: "Cart is Added successfully",
+//           data: cart,
+//         });
+//       }
+//     } else {
+//       //no cart exists, create one
+//       const newCart = await Cart.create({
+//         owner,
+//         items: [{ itemId, name, quantity, price, description, subtotal }],
+//         bill: quantity * price,
+//       });
+
+//       return res.status(200).json({
+//         success: true,
+//         message: "Cart is Added successfully",
+//         data: newCart,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(200).json({
+//       success: false,
+//       message: "something is wrong in cart add process",
+//       error,
+//     });
+//   }
+// });
+
 router.post("/", auth, async (req, res) => {
-  // const owner = req.session.user;
-  const { itemId, quantity } = req.body;
+//   // const owner = req.session.user;
+  const { itemId } = req.body;
   console.log(res.id);
   const id = res.id;
+  var quantity=1;
   console.log("=======> quantity ", quantity);
   console.log("=======> itemId", itemId);
 
@@ -117,7 +259,7 @@ router.post("/", auth, async (req, res) => {
     } else {
       //no cart exists, create one
       const newCart = await Cart.create({
-        owner,
+        owner: id,
         items: [{ itemId, name, quantity, price, description, subtotal }],
         bill: quantity * price,
       });

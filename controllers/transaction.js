@@ -54,7 +54,7 @@ router.post("/purchase",auth, async (req, res) => {
       let {  id } = req.body
       console.log("ds",req.body.amount)
       const charge = await stripe.paymentIntents.create({
-        amount: req.body.amount,
+        amount: req.body.amount * 100,
         currency: "USD",
         description: "Tests Charges",
         payment_method: id,

@@ -43,14 +43,9 @@ const userSchema = new mongoose.Schema({
     default: "ENABLED",
   },
   coins: {
-    freeCoins: {
-      type: Number,
-      default: "500",
-    },
-    paidCoins: {
-      type: Number,
-      default: "50",
-    },
+   
+      type: String,
+      default: "0",
   },
   code: {
     type: Number,

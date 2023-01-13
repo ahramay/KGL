@@ -32,7 +32,7 @@ router.post("/signup", async (req, res) => {
   })
     .then((created) => {
       return res.status(200).json({
-        success: true,
+        success: "signup in successfully.",
         user: created,
       });
     })
