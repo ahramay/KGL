@@ -36,7 +36,7 @@ router.post("/", auth, async (req, res) => {
     });
 });
 // get the 5 product on first page
-router.get("/", auth, async (req, res) => {
+router.get("/", async (req, res) => {
   const { page = 1 } = req.query;
   const perPage = 5;
   const offset = (page - 1) * perPage;

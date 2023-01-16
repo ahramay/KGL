@@ -16,37 +16,111 @@ let secretKey = process.env.Stripe_Secret_key;
 const stripe = require("stripe")(secretKey);
 //api/v1/checkout/addorder
 
-router.post("/addorder",auth, async (req, res) => {
-//  const owner = req.session.user._id;
-console.log(res.id)
-const id =res.id; 
+router.post("/addorder", auth, async (req, res) => {
+  try {
+    const owner = res.id;
 
-console.log("dfdf",res.id)
-  let cart = await Cart.findOne({ owner: id });
+    console.log("------>owner", owner);
 
-  console.log("------>cart", cart);
-  await Order({
-    owner: cart.owner,
-    cartitems: [...cart.items],
-    amount: cart.bill,
-  })
-    .save()
-    .then((addOrder) => {
-      console.log("=========> added order", addOrder);
-      return res.status(200).json({
-        success: true,
-        message: "get your cart in order progress",
-        data: addOrder,
-      });
-    })
-    .catch((err) => {
-      console.log("========>", err);
+    //find cart and user
+    let cart = await Cart.findOne({ owner: owner });
+    if (!cart) {
       return res.status(400).json({
         success: false,
         message: "something is wrong.",
       });
+    }
+    let order = await Order.findOne({
+      owner: owner,
+      status: "In processing",
     });
+    if (!order) {
+      console.log("------>cart", cart);
+      await Order({
+        owner: cart.owner,
+        cartitems: [...cart.items],
+        amount: cart.bill,
+      })
+        .save()
+        .then((addOrder) => {
+          console.log("=========> added order", addOrder);
+          return res.status(200).json({
+            success: true,
+            message: "get your cart in order progress",
+            data: addOrder,
+          });
+        })
+        .catch((err) => {
+          console.log("========>", err);
+          return res.status(400).json({
+            success: false,
+            message: "something is wrong.",
+          });
+        });
+    } else {
+      const removeOrder = await Order.findOneAndRemove({
+        owner: owner,
+        status: "In processing",
+      });
+      if (!removeOrder) {
+        return res.status(400).json({
+          success: false,
+          message: "did not delete last order to update new one.",
+        });
+      }
+      const updatedOrder = await Order.create({
+        owner: owner,
+        owner: cart.owner,
+        cartitems: [...cart.items],
+        amount: cart.bill,
+      });
+      return res.status(200).json({
+        success: true,
+        message: "your data exists in order",
+        data: updatedOrder,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: "something went wrong",
+      error,
+    });
+  }
 });
+
+
+// router.post("/addorder",auth, async (req, res) => {
+// // // //  const owner = req.session.user._id;
+// console.log(res.id)
+// const id =res.id; 
+
+// console.log("dfdf",res.id)
+//   let cart = await Cart.findOne({ owner: id });
+
+//   console.log("------>cart", cart);
+//   await Order({
+//     owner: cart.owner,
+//     cartitems: [...cart.items],
+//     amount: cart.bill,
+//   })
+//     .save()
+//     .then((addOrder) => {
+//       console.log("=========> added order", addOrder);
+//       return res.status(200).json({
+//         success: true,
+//         message: "get your cart in order progress",
+//         data: addOrder,
+//       });
+//     })
+//     .catch((err) => {
+//       console.log("========>", err);
+//       return res.status(400).json({
+//         success: false,
+//         message: "something is wrong.",
+//       });
+//     });
+// });
 // transaction//auth
 //api/v1/checkout/purchase
 router.post("/purchase",auth, async (req, res) => {
