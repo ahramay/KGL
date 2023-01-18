@@ -43,9 +43,8 @@ const userSchema = new mongoose.Schema({
     default: "ENABLED",
   },
   coins: {
-   
-      type: String,
-      default: "0",
+    type: String,
+    default: "0",
   },
   code: {
     type: Number,
@@ -61,3 +60,13 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports.User = mongoose.model("user", userSchema);
+// coins: {
+//   //  freeCoins: {
+//   //     type: Number,
+//   //     default: "500",
+//   //   },
+//   paidCoins: {
+//     type: Number,
+//     default: "0",
+//   },
+// },

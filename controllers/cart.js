@@ -4,15 +4,14 @@ const { Cart } = require("../models/Cart");
 const { Product } = require("../models/Product");
 const { auth, admin } = require("../middlewares/authorize");
 
-//get cart items for react
-
 router.get("/getcart", auth, async (req, res) => {
-  // const owner = req.session.user._id;
-  console.log(res.id);
-  const id = res.id;
+  const owner = res.id; // edit code in ahmed request
+  console.log("//////////getcartowner", owner);
+
   try {
-    const cart = await Cart.findOne({ owner: id });
+    const cart = await Cart.findOne({ owner: owner, isDeleted: false });
     if (!cart) {
+      //&& cart.items.length < 0
       return res.status(400).json({
         success: false,
         message: "cart is empty.",
@@ -37,172 +36,32 @@ router.get("/getcart", auth, async (req, res) => {
 });
 
 //add cart
-// const auths = async (req, res, next) => {
-//   const token =
-//     req.body.token ||
-//     req.query.token ||
-//     req.cookies.access_token ||
-//     req.header("x-auth-token");
-//   if (!token) {
-//     return res.status(400).json({
-//       message: "No token provided.",
-//     });
-//   }
-//   if (token) {
-//     jwt.verify(token, process.env.TOKEN_SECRET, (err, decodedToken) => {
-//       if (err) {
-//         return res.status(400).json({
-//           message: "Invalid token.",
-//         });
-//       }
-//       console.log("decoded ===>>> ", decodedToken);
-//       const id = decodedToken.id;
-//       User.findOne({ _id: id })
-//         .then((user) => {
-//           if (!user) {
-//             res.status(401).json({
-//               message: "Invalid token provided.",
-//             });
-//           }
-//           req.user = user;
-//           next();
-//         })
-//         .catch((err) => {
-//           throw err;
-//         });
-//     });
-//   }
-// };
-
-
-// router.post("/", auth, async (req, res) => {
-//   const owner = req.session.user;
-//   // const itemId = req.query;
-//   // const quantity = req.query;
-//   const { itemId, quantity } = req.body;
-
-//   console.log("=======> quantity ", quantity);
-//   console.log("=======> itemId", itemId);
-
-//   try {
-//     const cart = await Cart.findOne({ owner });
-//     const item = await Product.findOne({ _id: itemId });
-
-//     if (!item) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "item not found",
-//         error,
-//       });
-//     }
-//     if (!quantity) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "please give your quantity ",
-//         error,
-//       });
-//     }
-//     const price = item.price;
-//     const name = item.name;
-//     const description = item.description;
-//     var subtotal = item.price;
-
-//     console.log("=======> quantity ", quantity);
-//     console.log("=======> itemId", itemId);
-//     //If cart already exists for user,
-//     if (cart)
-//  {
-//       const itemIndex = cart.items.findIndex((item) => item.itemId == itemId);
-//       console.log("--------->itemIndex", itemIndex);
-//       //check if product exists or not
-
-//       if (itemIndex > -1) {
-//         let product = cart.items[itemIndex];
-//         product.quantity += quantity;
-//         product.subtotal = parseInt(product.price * product.quantity);
-
-//         console.log("======>product", product);
-
-//         cart.bill = cart.items.reduce((acc, curr) => {
-//           return acc + curr.quantity * curr.price;
-//         }, 0);
-
-//         cart.items[itemIndex] = product;
-//         await cart.save();
-//         return res.status(200).json({
-//           success: true,
-//           message: "Cart is Added successfully",
-//           data: cart,
-//         });
-//       } else {
-//         cart.items.push({
-//           itemId,
-//           name,
-//           quantity,
-//           price,
-//           description,
-//           subtotal,
-//         });
-//         cart.bill = cart.items.reduce((acc, curr) => {
-//           return acc + curr.quantity * curr.price;
-//         }, 0);
-
-//         await cart.save();
-//         return res.status(200).json({
-//           success: true,
-//           message: "Cart is Added successfully",
-//           data: cart,
-//         });
-//       }
-//     } else {
-//       //no cart exists, create one
-//       const newCart = await Cart.create({
-//         owner,
-//         items: [{ itemId, name, quantity, price, description, subtotal }],
-//         bill: quantity * price,
-//       });
-
-//       return res.status(200).json({
-//         success: true,
-//         message: "Cart is Added successfully",
-//         data: newCart,
-//       });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(200).json({
-//       success: false,
-//       message: "something is wrong in cart add process",
-//       error,
-//     });
-//   }
-// });
-
 router.post("/", auth, async (req, res) => {
-//   // const owner = req.session.user;
-  const { itemId } = req.body;
-  console.log(res.id);
-  const id = res.id;
-  var quantity=1;
+  const owner = res.id;
+  // const itemId = req.query;
+  // const quantity = req.query;
+  // let userObj = req.session.user;
+  const { itemId } = req.body; // quantity
+  const quantity = 1;
+
+  console.log("=======> owner ", owner);
   console.log("=======> quantity ", quantity);
   console.log("=======> itemId", itemId);
 
   try {
-    const cart = await Cart.findOne({ owner: id });
+    const cart = await Cart.findOne({ owner: owner, isDeleted: false });
     const item = await Product.findOne({ _id: itemId });
 
     if (!item) {
       return res.status(400).json({
         success: false,
         message: "item not found",
-        error,
       });
     }
     if (!quantity) {
       return res.status(400).json({
         success: false,
         message: "please give your quantity ",
-        error,
       });
     }
     const price = item.price;
@@ -259,7 +118,7 @@ router.post("/", auth, async (req, res) => {
     } else {
       //no cart exists, create one
       const newCart = await Cart.create({
-        owner: id,
+        owner: owner,
         items: [{ itemId, name, quantity, price, description, subtotal }],
         bill: quantity * price,
       });
@@ -282,11 +141,10 @@ router.post("/", auth, async (req, res) => {
 
 //delete the product from the cart product list
 router.delete("/decreaseitem", auth, async (req, res) => {
-  const owner = req.session.user;
+  const owner = res.id;
   const itemId = req.query.itemId;
-
   try {
-    let cart = await Cart.findOne({ owner });
+    let cart = await Cart.findOne({ owner: owner, isDeleted: false });
 
     const itemIndex = cart.items.findIndex((item) => item.itemId == itemId);
     if (!itemIndex) {
@@ -333,13 +191,12 @@ router.delete("/decreaseitem", auth, async (req, res) => {
 });
 
 router.post("/decreasequantity", auth, async (req, res) => {
+  const owner = res.id;
   const { itemId } = req.body;
+
   console.log("=======> itemId del one", itemId);
 
-  console.log(res.id);
-  const id = res.id;
-
-  let cart = await Cart.findOne({ owner: id });
+  let cart = await Cart.findOne({ owner: owner, isDeleted: false });
   let item = await Product.findOne({ _id: itemId });
 
   if (!cart) {
@@ -377,10 +234,11 @@ router.post("/decreasequantity", auth, async (req, res) => {
   });
 });
 
+//hard Delete
 router.get("/deletefromcart", auth, async (req, res) => {
-  userId = req.session.user._id;
+  userId = res.id;
   console.log("==========>userid", userId);
-  const cart = await Cart.findOneAndDelete({ owner: userId });
+  const cart = await Cart.findOneAndDelete({ owner: userId, isDeleted: false });
   if (!cart) {
     res.json({
       status: 400,
@@ -394,23 +252,3 @@ router.get("/deletefromcart", auth, async (req, res) => {
 });
 
 module.exports = router;
-// let result = cart.items.map((a) => {
-//   const checkQauntity = a.itemId.quantity > 1;
-//   if (checkQauntity) {
-//     cart.items.itemId.subtotal =
-//       checkQauntity.quantity * checkQauntity.price;
-//     console.log("====================>", result);
-//   }
-// });
-
-// if (cart.items.quantity > 1) {
-//   cart.items.itemId.subtotal = cart.items.reduce((acc, curr) => {
-//     return acc + curr.quantity * curr.price;
-//   }, 0);
-//   console.log("=======> subtotal", cart.items.itemId.subtotal);
-// }
-
-//delete form the cart
-
-// if (!userId || !isValidObjectId(userId) || !user){
-//   return res.status(400).send({ status: false, message: "Invalid user ID" });}

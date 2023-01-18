@@ -4,7 +4,7 @@ const cartSchema = new mongoose.Schema({
   owner: {
     type: ObjectID,
     required: true,
-    ref: "user",
+    ref: "User",
   },
   items: [
     {

@@ -4,12 +4,13 @@ const { Cart } = require("../models/Cart");
 const { Transaction } = require("../models/Transaction");
 const { Product } = require("../models/Product");
 const { Order } = require("../models/Order");
+const { Redeemed } = require("../models/Redeemed");
 const { auth, admin } = require("../middlewares/authorize");
 const { User } = require("../models/User");
-// const {
-//   Testtransaction,
-//   validateTesttransaction,
-// } = require("../models/Testtransaction");
+const {
+  Testtransaction,
+  validateTesttransaction,
+} = require("../models/Testtransaction");
 const { customAlphabet } = require("nanoid");
 let publishKey = process.env.Stripe_Publishable_key;
 let secretKey = process.env.Stripe_Secret_key;
@@ -22,8 +23,7 @@ router.post("/addorder", auth, async (req, res) => {
 
     console.log("------>owner", owner);
 
-    //find cart and user
-    let cart = await Cart.findOne({ owner: owner });
+    let cart = await Cart.findOne({ owner: owner, isDeleted: false });
     if (!cart) {
       return res.status(400).json({
         success: false,
@@ -33,6 +33,7 @@ router.post("/addorder", auth, async (req, res) => {
     let order = await Order.findOne({
       owner: owner,
       status: "In processing",
+      isDeleted: false,
     });
     if (!order) {
       console.log("------>cart", cart);
@@ -61,6 +62,7 @@ router.post("/addorder", auth, async (req, res) => {
       const removeOrder = await Order.findOneAndRemove({
         owner: owner,
         status: "In processing",
+        isDeleted: false,
       });
       if (!removeOrder) {
         return res.status(400).json({
@@ -89,251 +91,184 @@ router.post("/addorder", auth, async (req, res) => {
   }
 });
 
+router.get("/getpubkey", auth, async (req, res) => {
+  if (publishKey) {
+    return res.status(200).json({
+      success: true,
+      message: "it is publishkey.",
+      publishKey: publishKey,
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: "there is no publishkey.",
+    });
+  }
+});
 
-// router.post("/addorder",auth, async (req, res) => {
-// // // //  const owner = req.session.user._id;
-// console.log(res.id)
-// const id =res.id; 
-
-// console.log("dfdf",res.id)
-//   let cart = await Cart.findOne({ owner: id });
-
-//   console.log("------>cart", cart);
-//   await Order({
-//     owner: cart.owner,
-//     cartitems: [...cart.items],
-//     amount: cart.bill,
-//   })
-//     .save()
-//     .then((addOrder) => {
-//       console.log("=========> added order", addOrder);
-//       return res.status(200).json({
-//         success: true,
-//         message: "get your cart in order progress",
-//         data: addOrder,
-//       });
-//     })
-//     .catch((err) => {
-//       console.log("========>", err);
-//       return res.status(400).json({
-//         success: false,
-//         message: "something is wrong.",
-//       });
-//     });
-// });
-// transaction//auth
-//api/v1/checkout/purchase
-router.post("/purchase",auth, async (req, res) => {
+router.post("/purchase", auth, async (req, res) => {
   try {
-      let {  id } = req.body
-      console.log("ds",req.body.amount)
-      const charge = await stripe.paymentIntents.create({
-        amount: req.body.amount * 100,
-        currency: "USD",
-        description: "Tests Charges",
-        payment_method: id,
-        confirm: true,
-      });
-      if (!charge) {
-        return res.status(400).json({
-          success: false,
-          message: "charge is failed.",
-          err,
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: "customer and charger is successfull.",
-        data: charge,
+    var owner = res.id;
+    console.log("====>owner", owner);
+    let { id } = req.body;
+    console.log("========>id.cards,", id);
+    console.log("ds", req.body.amount);
+    var charge = await stripe.paymentIntents.create({
+      amount: req.body.amount * 100,
+      currency: "USD",
+      description: "Tests Charges",
+      payment_method: id,
+      confirm: true,
+    });
+    if (!charge) {
+      return res.status(400).json({
+        success: false,
+        message: "charge is failed.",
+        err,
       });
     }
-   catch (err) {
+
+    console.log("--------->", charge);
+    var nanoid = customAlphabet(
+      "ABCDE01234FGHIJKL01234MNO56789PQR56789STUVW01234XYZ56789",
+      8
+    );
+
+    if (charge.status == "succeeded") {
+      console.log("--------->charge successfully");
+      var alphanumeriCode = nanoid();
+      console.log("==============nanoid", alphanumeriCode);
+      const checkedIsRedeemd = await Transaction.findOne({
+        code: alphanumeriCode, //   isRedeemed: true,
+      });
+      console.log("--------->Transaction>checkedIsRedeemd", checkedIsRedeemd);
+      const codeGenerated = await Redeemed.findOne({ code: alphanumeriCode });
+      console.log("--------->Redeemed>codeGenerated", codeGenerated);
+      if (codeGenerated && checkedIsRedeemd) {
+        let againAlphanumeriCode = nanoid();
+
+        const updateOrder = await Order.findOneAndUpdate(
+          { owner: owner, isDeleted: false },
+          { $set: { status: "Paid Successfully", isDeleted: true } },
+          { new: true }
+        );
+
+        console.log("===========>updateOrder", updateOrder);
+        if (!updateOrder) {
+          return  res.status(400).json({
+            success: false,
+            message: "transaction is not created.",
+          });
+        }
+
+        const findCartDel = await Cart.findOneAndUpdate(
+          { owner: owner, isDeleted: false },
+          { $set: { isDeleted: true } },
+          { new: true }
+        );
+
+        console.log("--------->CartfindCartDel", findCartDel);
+        if (!findCartDel) {
+          return res.status(400).json({
+            success: false,
+            message: "cart is not deleted.",
+          });
+        }
+        console.log("===========>charge.id", charge.id);
+        const addTransaction = await Transaction.create({
+          owner: owner,
+          // cartItems: [...order.cartitems],
+          payment: charge.amount / 100,
+          // cards: id, //id.cards,
+          transactionId: charge.id,
+          code: againAlphanumeriCode,
+        });
+        console.log("===========>addTransaction", addTransaction);
+        if (!addTransaction) {
+          return res.status(400).json({
+            success: false,
+            message: "transaction is not created.",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: "paid successful and add to transaction",
+          data: addTransaction,
+        });
+      } else {
+        const updateOrder = await Order.findOneAndUpdate(
+          { owner: owner, isDeleted: false },
+          { $set: { status: "Paid Successfully", isDeleted: true } },
+          { new: true }
+        );
+
+        console.log("===========>updateOrder", updateOrder);
+        if (!updateOrder) {
+          return res.status(400).json({
+            success: false,
+            message: "order is not updated.",
+          });
+        }
+
+        const findCartDel = await Cart.findOneAndUpdate(
+          { owner: owner, isDeleted: false },
+          { $set: { isDeleted: true } },
+          { new: true }
+        );
+
+        console.log("========>findCartDel", findCartDel);
+
+        if (!findCartDel) {
+          return res.status(400).json({
+            success: false,
+            message: "cart is not deleted.",
+          });
+        }
+
+        const addTransaction = await Transaction.create({
+          owner: owner,
+          // cartItems: [...order.cartitems],
+          payment: charge.amount / 100,
+          // cards: id, //id.cards,
+          transactionId: charge.id,
+          code: alphanumeriCode,
+        });
+        if (!addTransaction) {
+          return res.status(400).json({
+            success: false,
+            message: "transaction is not created.",
+          });
+        }
+        return res.status(200).json({
+          success: true,
+          message: "paid successful and add to transaction",
+          data: addTransaction,
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "charge not found",
+      });
+    }
+  } catch (err) {
     console.log("==========>", err);
-    // If some error occurs
+
     return res.status(400).json({
       success: false,
       message: "charge is failed.",
       err,
     });
   }
-
-  // if (charge.status === Success) {
-  //   const nanoid = customAlphabet("ABCDEFGHIJKL01234MNOPQRSTUVWXYZ56789", 8); //abcdefghijklmnopqrstuvwxyz
-  //   //customAlphabet
-  //   const alphanumeriCode = nanoid();
-  //   console.log("==============nanoid", alphanumeriCode);
-
-  //   //delete cart after paid successfull
-  //   const data = await Cart.findByIdAndDelete({ _id: owner });
-  //   return res.status(200).json({
-  //     success: true,
-  //     message: "payment successful and delete from cart",
-  //     data: data,
-  //   });
-  // } else {
-  //   res.status(400).json({
-  //     success: false,
-  //     message: "charge not found",
-  //   });
-  // }
-
-  // const addTransaction = await Transaction.create({
-  //   owner,
-  //   cartItems: [...order.cartitems],
-  //   bill: order.amount,
-  //   paidcustomer: customer.id,
-  //   paidcharges: charge,
-  //   code: alphanumeriCode,
-  // });
-  // if (!addTransaction) {
-  //   return res.status(400).json({
-  //     success: false,
-  //     message: "transaction is not created.",
-  //   });
-  // }
-
-  // const updateOrder = await Order.findOneAndUpdate(
-  //   { owner: owner },
-  //   { status: "In transit" },
-  //   { new: true }
-  // );
-  // return res.status(200).json({
-  //   success: true,
-  //   message: "paid successful and add to transaction",
-  //   data: addTransaction,
-  // });
-  //}
-  // } catch (error) {
-  //   console.log(error);
-
-  //   return res.status(400).json({
-  //     success: false,
-  //     message: "invalid request",
-  //     error,
-  //   });
 });
-// router.post("/purchase",auth, async (req, res) => {
-//   // try {
-//     console.log(res.id)
-//     const id =res.id; 
-//   let payload = req.body;
-
-//   console.log("------>payload", payload);
-
-//   //find cart and user
-
-//   // if (!user) {
-//   //   res.status(400).json({
-//   //     success: false,
-//   //     message: "user with this id not found.",
-//   //   });
-//   // }
-//   const order = await Order.findOne({
-//     owner: id,
-//   });
-//   if (!order) {
-//     res.status(400).json({
-//       success: false,
-//       message: "order with this id not found.",
-//     });
-//   }
-//   // console.log("------>session.user.email", user.email);
-
-//   if (order) {
-//     payload = { ...payload, amount: order.account, email: id.email };
-//     stripe.customers
-//       .create({
-//         email: id.email,
-//         source: req.body.stripeToken,
-//       })
-//       .then((customer) => {
-//         console.log("========>stripeToken", req.body.stripeToken);
-//         console.log("========>", req.body.amount);
-//         stripe.charges.create({
-//           amount: req.body.amount, //*
-//           currency: "usd",
-//           description: "Tests Charges",
-//           customer: customer.id,
-//         });
-//       })
-//       .then((charge) => {
-//         console.log("===========> charge here", charge);
-//         return res.status(200).json({
-//           success: true,
-//           message: "customer and charger is successfull.",
-//           data: charge,
-//         });
-//       })
-//       .catch((err) => {
-//         console.log("==========>", err);
-//         // If some error occurs
-//         return res.status(400).json({
-//           success: false,
-//           message: "charge is faild.",
-//           err,
-//         });
-//       });
-
-//     // if (charge.status === Success) {
-//     //   const nanoid = customAlphabet("ABCDEFGHIJKL01234MNOPQRSTUVWXYZ56789", 8); //abcdefghijklmnopqrstuvwxyz
-//     //   //customAlphabet
-//     //   const alphanumeriCode = nanoid();
-//     //   console.log("==============nanoid", alphanumeriCode); // sample outputs => 455712511712968405, 753952709650782495
-
-//     //   //delete cart after paid successfull
-//     //   const data = await Cart.findByIdAndDelete({ _id: owner });
-//     //   return res.status(200).json({
-//     //     success: true,
-//     //     message: "payment successful and to db and delete from cart",
-//     //     data: data,
-//     //   });
-//     // } else {
-//     //   res.status(400).json({
-//     //     success: false,
-//     //     message: "charge not found",
-//     //   });
-//     // }
-
-//     // const addTransaction = await Transaction.create({
-//     //   owner,
-//     //   cartItems: [...order.cartitems],
-//     //   bill: order.amount,
-//     //   paidcustomer: customer.id,
-//     //   paidcharges: charge,
-//     //   code: alphanumeriCode,
-//     // });
-//     // if (!addTransaction) {
-//     //   return res.status(400).json({
-//     //     success: false,
-//     //     message: "transaction is not created.",
-//     //   });
-//     // }
-
-//     // return res.status(200).json({
-//     //   success: true,
-//     //   message: "paid successful and add to transaction",
-//     //   data: addTransaction,
-//     // });
-//     //}
-//     // } catch (error) {
-//     //   console.log(error);
-
-//     //   return res.status(400).json({
-//     //     success: false,
-//     //     message: "invalid request",
-//     //     error,
-//     //   });
-//   }
-// });
-//api/v1/checkout/createtransaction
-
 router.get("/getorder", auth, async (req, res) => {
-  console.log(res.id)
-const id =res.id; 
+  console.log(res.id);
+  const id = res.id;
 
   await Order.findOne({
     owner: id,
+    isDeleted: false,
   })
 
     .then((getData) => {
@@ -353,66 +288,6 @@ const id =res.id;
         error: err,
       });
     });
-});
-
-router.post("/createtransaction", auth, async (req, res) => {
-  let owner = req.session.user._id;
-  console.log("======>owner", owner);
-
-  const { value, error } = validateTesttransaction(req.body);
-
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.details[0].message,
-    });
-  }
-  console.log("======>value", value);
-
-  const nanoid = customAlphabet("ABCDEFGHIJKL01234MNOPQRSTUVWXYZ56789", 8); //abcdefghijklmnopqrstuvwxyz
-  //customAlphabet
-  const alphanumeriCode = nanoid();
-  console.log("==============nanoid", alphanumeriCode); // sample outputs => 455712511712968405, 753952709650782495
-
-  await Testtransaction({
-    owner: owner,
-    payment: value.payment,
-    code: alphanumeriCode,
-  })
-    .save()
-
-    .then((created) => {
-      return res.status(200).json({
-        success: true,
-        message: "added updated successfully.",
-        data: created,
-      });
-    })
-
-    .catch((err) => {
-      return res.status(400).json({
-        success: false,
-        error: err,
-      });
-    });
-
-  const getData = await Testtransaction.findOne({ owner: owner });
-  var user = await User.findOne({ _id: owner });
-});
-
-router.get("/getpubkey", auth, async (req, res) => {
-  if (publishKey) {
-    return res.status(200).json({
-      success: true,
-      message: "it is publishkey.",
-      publishKey: publishKey,
-    });
-  } else {
-    return res.status(400).json({
-      success: false,
-      message: "there is no publishkey.",
-    });
-  }
 });
 
 module.exports = router;

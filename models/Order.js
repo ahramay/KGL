@@ -38,8 +38,16 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["In processing", "In transit"],
+    enum: ["In processing", "In transit", "Paid Successfully"],
     default: "In processing",
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now(),
   },
 });
 
