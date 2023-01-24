@@ -136,7 +136,7 @@ router.post("/purchase", auth, async (req, res) => {
 
     if (charge.status == "succeeded") {
       console.log("--------->charge successfully");
-      var alphanumeriCode = nanoid();
+      const alphanumeriCode = nanoid();
       console.log("==============nanoid", alphanumeriCode);
       const checkedIsRedeemd = await Transaction.findOne({
         code: alphanumeriCode, //   isRedeemed: true,
@@ -155,7 +155,7 @@ router.post("/purchase", auth, async (req, res) => {
 
         console.log("===========>updateOrder", updateOrder);
         if (!updateOrder) {
-          return  res.status(400).json({
+          res.status(400).json({
             success: false,
             message: "transaction is not created.",
           });
@@ -205,7 +205,7 @@ router.post("/purchase", auth, async (req, res) => {
 
         console.log("===========>updateOrder", updateOrder);
         if (!updateOrder) {
-          return res.status(400).json({
+          res.status(400).json({
             success: false,
             message: "order is not updated.",
           });
@@ -247,7 +247,7 @@ router.post("/purchase", auth, async (req, res) => {
         });
       }
     } else {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "charge not found",
       });
@@ -289,5 +289,24 @@ router.get("/getorder", auth, async (req, res) => {
       });
     });
 });
-
+router.get("/getusercode", auth, async (req, res) => {
+  const owner = res.id;
+  console.log("user", owner);
+  const getCode = await Transaction.find({
+    owner: owner,
+    isDeleted: false,
+    isRedeemed: false,
+  }); //.sort({ createdAt: "desc" });
+  if (!getCode) {
+    res.status(400).json({
+      success: false,
+      message: "there is no code with this user please try again.",
+    });
+  }
+  console.log("getCode=====>", getCode);
+  res.status(200).json({
+    success: true,
+    data: getCode,
+  });
+});
 module.exports = router;

@@ -189,8 +189,8 @@ router.delete("/decreaseitem", auth, async (req, res) => {
     });
   }
 });
-
-router.post("/decreasequantity", auth, async (req, res) => {
+//post
+router.put("/decreasequantity", auth, async (req, res) => {
   const owner = res.id;
   const { itemId } = req.body;
 
@@ -225,6 +225,49 @@ router.post("/decreasequantity", auth, async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "product qauntity is decrease successfully",
+      data: cart,
+    });
+  }
+  return res.status(400).json({
+    success: false,
+    message: "Item does not exist in cart",
+  });
+});
+router.put("/increasequantity", auth, async (req, res) => {
+  const owner = res.id;
+  const { itemId } = req.body;
+
+  console.log("=======> itemId del one", itemId);
+
+  let cart = await Cart.findOne({ owner: owner, isDeleted: false });
+  let item = await Product.findOne({ _id: itemId });
+
+  if (!cart) {
+    return res.status(404).json({
+      success: false,
+      message: "Cart not found for this user",
+    });
+  }
+
+  let itemIndex = cart.items.findIndex((p) => p.itemId == itemId);
+
+  if (itemIndex > -1) {
+    let productItem = cart.items[itemIndex];
+    productItem.quantity += 1;
+    productItem.subtotal += productItem.price;
+
+    //parseInt(
+
+    cart.bill = cart.items.reduce((acc, curr) => {
+      return acc + curr.quantity * curr.price;
+    }, 0);
+    //Math.abs(acc - curr.quantity * curr.price);
+    cart.items[itemIndex] = productItem;
+    cart = await cart.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "product qauntity is increase successfully",
       data: cart,
     });
   }

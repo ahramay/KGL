@@ -66,13 +66,12 @@ router.post("/signin", async (req, res) => {
           if (!auth) {
             return res.status(400).json({ message: "Invalid credentials." });
           } else {
-             
             token = makeTokens(user._id);
-            return res
-            .send({ token:  token.token,user:user, message: "logged in successfully" })
-           
-              .status(200)
-             
+            return res.status(200).send({
+              token: token.token,
+              user: user,
+              message: "logged in successfully",
+            });
           }
         });
       }
@@ -96,7 +95,6 @@ router.get("/logout", auth, (req, res) => {
 });
 
 router.post("/request_reset_password", async (req, res) => {
-
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {

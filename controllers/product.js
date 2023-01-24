@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const { Product, validateAddProduct } = require("../models/Product");
-const { getFileName } = require("../helpers/file");
+const { getFileName, write } = require("../helpers/file");
 const { imageUpload } = require("../middlewares/upload");
 const { json } = require("express");
 const { auth, admin } = require("../middlewares/authorize");
-
-// imageUpload.single("image"),
-router.post("/", auth, async (req, res) => {
+const path = require("path");
+//
+router.post("/", auth, imageUpload.single("image"), async (req, res) => {
   const { value, error } = validateAddProduct(req.body);
 
   if (error) {
@@ -16,9 +16,29 @@ router.post("/", auth, async (req, res) => {
       message: error.details[0].message,
     });
   }
+  const definPath = path.resolve(
+    __dirname,
+    "../public/uploads/images/" + uniqueName
+  );
 
-  await new Product(value)
-    .save()
+  const file = req.file;
+  //"C:\\Users\\Lenovo\\Pictures\\KLG\\public\\uploads\\images\\" +
+  if (file) {
+    const uniqueName = getFileName(file.originalname);
+    const uploadx = await write(definPath + uniqueName, file.buffer);
+    var image = definPath + uniqueName;
+  }
+
+  console.log("==========>file", image);
+
+  if (!image) {
+    return res.status(400).json({
+      success: false,
+      message: "this image is not working",
+    });
+  }
+
+  await Product.create({ value, image })
 
     .then((created) => {
       return res.status(200).json({

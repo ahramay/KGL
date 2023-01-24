@@ -6,6 +6,7 @@ const userSessionRouter = require("../controllers/UserSessionController");
 const productRouter = require("../controllers/product");
 const cartRouter = require("../controllers/cart");
 const transactionRouter = require("../controllers/transaction");
+const coinsRouter = require("../controllers/coins");
 
 module.exports = (app) => {
   //API Routes
@@ -18,4 +19,5 @@ module.exports = (app) => {
   app.use("/api/v1/product", productRouter);
   app.use("/api/v1/cart", cartRouter);
   app.use("/api/v1/checkout", transactionRouter);
+  app.use("/api/v1/coins", coinsRouter);
 };

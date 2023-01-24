@@ -1,10 +1,11 @@
 const express = require("express");
 require("dotenv").config();
+const bodyParser = require("body-parser");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const ejs = require("ejs");
-const cors = require('cors');
+const cors = require("cors");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const stripe = require("stripe")(process.env.Stripe_Secret_key);
 
@@ -14,16 +15,21 @@ const store = new MongoDBStore({
 });
 
 const app = express();
-
-app.use(express.static("public"));
-// view engine
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
+
+app.use("/uploads", express.static("uploads"));
+// view engine
+
+app.set("view engine", "ejs");
+// app.set("views", path.join(__dirname, "views"));
+// app.use(express.static(path.join(__dirname, "public")));
 // enable cors
 app.use(cors());
-app.options('*', cors());
+app.options("*", cors());
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(
