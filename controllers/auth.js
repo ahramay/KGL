@@ -17,7 +17,14 @@ router.post("/signup", async (req, res) => {
   console.log(previousUser);
   if (previousUser.length) {
     return res.status(400).json({
-      message: "User already exists.",
+      message: "Email Already exist.",
+    });
+  }
+  const previousUsername = await User.find({ username });
+  console.log(previousUsername);
+  if (previousUsername.length) {
+    return res.status(400).json({
+      message: "Username Already exist.",
     });
   }
 
@@ -60,18 +67,19 @@ router.post("/signin", async (req, res) => {
       console.log("the req.session======", req.session);
 
       if (!user) {
-        return res.status(400).json({ message: "Account does't exists." });
+        return res.status(400).json({ message: "Account doesn't exist." });
       } else {
         bcrypt.compare(password, user.password, async (err, auth) => {
           if (!auth) {
             return res.status(400).json({ message: "Invalid credentials." });
           } else {
+             
             token = makeTokens(user._id);
-            return res.status(200).send({
-              token: token.token,
-              user: user,
-              message: "logged in successfully",
-            });
+            return res
+            .send({ token:  token.token,user:user, message: "logged in successfully" })
+           
+              .status(200)
+             
           }
         });
       }
@@ -95,6 +103,7 @@ router.get("/logout", auth, (req, res) => {
 });
 
 router.post("/request_reset_password", async (req, res) => {
+
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {

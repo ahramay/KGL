@@ -67,6 +67,7 @@ router.post("/", auth, async (req, res) => {
     const price = item.price;
     const name = item.name;
     const description = item.description;
+    const image = item.image;
     var subtotal = item.price;
 
     console.log("=======> quantity ", quantity);
@@ -103,6 +104,7 @@ router.post("/", auth, async (req, res) => {
           price,
           description,
           subtotal,
+          image,
         });
         cart.bill = cart.items.reduce((acc, curr) => {
           return acc + curr.quantity * curr.price;
@@ -119,7 +121,9 @@ router.post("/", auth, async (req, res) => {
       //no cart exists, create one
       const newCart = await Cart.create({
         owner: owner,
-        items: [{ itemId, name, quantity, price, description, subtotal }],
+        items: [
+          { itemId, name, quantity, price, description, subtotal, image },
+        ],
         bill: quantity * price,
       });
 
@@ -140,14 +144,14 @@ router.post("/", auth, async (req, res) => {
 });
 
 //delete the product from the cart product list
-router.delete("/decreaseitem", auth, async (req, res) => {
+router.delete("/deleteitem", auth, async (req, res) => {
   const owner = res.id;
-  const itemId = req.query.itemId;
+  const itemId = req.body.itemId;
   try {
     let cart = await Cart.findOne({ owner: owner, isDeleted: false });
 
     const itemIndex = cart.items.findIndex((item) => item.itemId == itemId);
-    if (!itemIndex) {
+    if (itemIndex < 0) {
       return res.status(400).json({
         success: false,
         message: "there is no product in cart",

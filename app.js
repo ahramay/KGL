@@ -16,9 +16,9 @@ const store = new MongoDBStore({
 
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
-app.use(express.static("public"));
+// app.use(express.static("public"));
 
-app.use("/uploads", express.static("uploads"));
+// app.use("/uploads", express.static("uploads"));
 // view engine
 
 app.set("view engine", "ejs");

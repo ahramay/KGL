@@ -21,6 +21,7 @@ const cartSchema = new mongoose.Schema({
         default: 1,
       },
       price: Number,
+      image: { type: String },
 
       description: String,
       subtotal: {
@@ -36,6 +37,7 @@ const cartSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+
   isDeleted: {
     type: Boolean,
     default: false,
