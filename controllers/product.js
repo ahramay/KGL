@@ -7,7 +7,7 @@ const { json } = require("express");
 const { auth, admin } = require("../middlewares/authorize");
 const path = require("path");
 //
-router.post("/", auth, imageUpload.single("image"), async (req, res) => {
+router.post("/", imageUpload.single("image"), async (req, res) => {
   const { value, error } = validateAddProduct(req.body);
 
   if (error) {
@@ -78,7 +78,7 @@ router.get("/", async (req, res) => {
 });
 
 //get specific product
-router.get("/:id", auth, async (req, res) => {
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const product = await Product.find({ _id: id, isDeleted: false });
   if (!product) {
@@ -93,7 +93,7 @@ router.get("/:id", auth, async (req, res) => {
   });
 });
 //soft delete the product
-router.post("/delete/:id", auth, async (req, res) => {
+router.post("/delete/:id", async (req, res) => {
   const { id } = req.params;
 
   Product.findOneAndUpdate({ _id: id }, { isDeleted: true })
@@ -111,7 +111,7 @@ router.post("/delete/:id", auth, async (req, res) => {
     });
 });
 // hard delete the product
-router.get("/delete/:id", auth, async (req, res) => {
+router.get("/delete/:id", async (req, res) => {
   const { id } = req.params;
   Product.deleteOne({ _id: id })
     .then((deleted) => {
