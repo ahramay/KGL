@@ -211,4 +211,65 @@ router.post("/deducted", auth, async (req, res) => {
     });
   }
 });
+
+router.post("/woncoins", auth, async (req, res) => {
+  const { number } = req.body; //req.query;
+  const id = res.id;
+  console.log("........>id", id);
+  console.log("........>number", number);
+
+  try {
+    const checkCoins = await User.findOne({ _id: id });
+
+    var AddCoins = parseInt(number);
+    console.log("........>minusCoins", AddCoins);
+    console.log("........>", checkCoins);
+
+    if (number > 1) {
+      var paidcoins = parseInt(checkCoins.coins) + parseInt(number);
+      console.log("........>paidcoins", paidcoins);
+      if (paidcoins <= 0) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "your coins is less for this charge, kindly redeem your coins",
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Warning! Send only positive interger.",
+      });
+    }
+
+    if (checkCoins.coins) {
+      const updateCoins = await User.findOneAndUpdate(
+        { _id: id },
+        { coins: paidcoins },
+        { new: true }
+      );
+      const deductedCoinHistory = await Coinhistory.create({
+        owner: id,
+        totalCoins: checkCoins.coins,
+        addCoins: AddCoins,
+      });
+      res.status(200).json({
+        sucess: true,
+        message: "Coins updated sucessfully.",
+        data: updateCoins,
+      });
+    } else {
+      return res.status(400).json({
+        sucess: false,
+        message: "Something went wrong.",
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      sucess: false,
+      message: "Warning! Something went wrong with coins.",
+    });
+  }
+});
+
 module.exports = router;

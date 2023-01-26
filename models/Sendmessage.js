@@ -1,5 +1,6 @@
-const { date } = require("joi");
 const mongoose = require("mongoose");
+const moment = require("moment");
+const Joi = require("joi");
 
 const ObjectID = mongoose.Schema.Types.ObjectId;
 const sendaMessageSchema = new mongoose.Schema({
@@ -9,7 +10,7 @@ const sendaMessageSchema = new mongoose.Schema({
     ref: "User",
   },
 
-  phone: {
+  name: {
     type: String,
   },
 
@@ -21,6 +22,9 @@ const sendaMessageSchema = new mongoose.Schema({
   },
 
   phone: {
+    type: String,
+  },
+  message: {
     type: String,
   },
   createdAt: {
@@ -35,4 +39,15 @@ const sendaMessageSchema = new mongoose.Schema({
 });
 
 const Sendmessage = mongoose.model("Sendmessage", sendaMessageSchema);
-module.exports = { Sendmessage };
+
+validateSendMessage = (data) => {
+  const schema = Joi.object({
+    name: Joi.string().min(3).trim(),
+    email: Joi.string().trim(),
+    phone: Joi.string(),
+    address: Joi.string().trim(),
+    message: Joi.string().trim(),
+  });
+  return schema.validate(data);
+};
+module.exports = { Sendmessage, validateSendMessage };
