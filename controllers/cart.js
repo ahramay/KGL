@@ -20,8 +20,8 @@ router.get("/getcart", auth, async (req, res) => {
     const cart = await Cart.findOne({ owner: owner, isDeleted: false });
     if (!cart) {
       //&& cart.items.length < 0
-      return res.status(400).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "Cart Is Empty!",
       });
     } else {
