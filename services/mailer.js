@@ -20,22 +20,27 @@ let resetPasswordEmail = async ({ to, link }) => {
   });
 };
 
-const SendUsMessage = async (playload) => {
+const SendUsMessage = async (value) => {
   // let transporter = makeTransporter();
 
   const mailOptions = {
     // from: "family@klg.com", // sender address
-    from: playload.email,
-    to: "alibaloch405060@gmail.com",
+    from: value.email,
+    to: "dmaqsood691@gmail.com",
     subject: "Send Us a Message", // Subject line
     text: "Welcome to LionsPride", // plain text body
     template: "",
     context: {
       layout: "email",
       heading: "Welcome to LionsPride",
-      ...playload,
-      // logoImage,
     },
+    html: `<h3> LionsPride User Message</h3><h4>
+    Email:${value.email}<br>
+    Name:${value.name}<br>
+    Address:${value.address}<br>
+    Phone:${value.phone}<br>
+    </h4><hr>
+    <p>message:${value.message}</p>`,
   };
 
   try {

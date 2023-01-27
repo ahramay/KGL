@@ -1,12 +1,13 @@
 const { getFileName } = require("../helpers/file");
 const multer = require("multer");
+const path = require("path");
 //memory storage
 const storage = multer.memoryStorage();
-
+const definPath = path.resolve(__dirname, "../public/uploads/images/");
 //temp storage
 const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "/public/uploads/images");
+    cb(null, definPath);
   },
   filename: function (req, file, cb) {
     var fileName = getFileName(file.originalname);
@@ -35,7 +36,7 @@ const mediaStorage = multer.diskStorage({
 });
 
 exports.imageUpload = multer({
-  storage: storage,
+  storage: imageStorage,
   limits: {
     fileSize: 1024 * 1024 * 100,
   },

@@ -265,7 +265,17 @@ router.post("/purchase", auth, async (req, res) => {
 router.get("/getorder", auth, async (req, res) => {
   console.log(res.id);
   const id = res.id;
-
+  const getOrder = await Order.findOne({
+    owner: id,
+    isDeleted: false,
+  }); //update this code
+  const itemIndex = getOrder.cartitems.findIndex((item) => item.itemId);
+  if (itemIndex <= -1) {
+    return res.status(200).json({
+      success: true,
+      message: "There no order Yet! Please Add Your Cart",
+    });
+  }
   await Order.findOne({
     owner: id,
     isDeleted: false,
@@ -273,7 +283,6 @@ router.get("/getorder", auth, async (req, res) => {
 
     .then((getData) => {
       console.log("=========> get order", getData);
-
       return res.status(200).json({
         success: true,
         message: "get data successfully.",
@@ -281,11 +290,12 @@ router.get("/getorder", auth, async (req, res) => {
         publishKey: publishKey,
       });
     })
+
     .catch((err) => {
       console.log("========>", err);
       return res.status(400).json({
         success: false,
-        error: err,
+        message: "There no order Yet!",
       });
     });
 });

@@ -54,7 +54,7 @@ router.post("/signin", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username) {
-    return res.status(400).json({ message: "Email is required." });
+    return res.status(400).json({ message: "userName is required." });
   }
   if (!password) {
     return res.status(400).json({ message: "Password is required." });

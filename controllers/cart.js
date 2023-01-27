@@ -9,27 +9,34 @@ router.get("/getcart", auth, async (req, res) => {
   console.log("//////////getcartowner", owner);
 
   try {
+    const cartProduct = await Cart.findOne({ owner: owner, isDeleted: false });
+    const itemIndex = cartProduct.items.findIndex((item) => item.itemId);
+    if (itemIndex <= -1) {
+      return res.status(200).json({
+        success: true,
+        message: "Cart Is Empty!",
+      });
+    }
     const cart = await Cart.findOne({ owner: owner, isDeleted: false });
     if (!cart) {
       //&& cart.items.length < 0
       return res.status(400).json({
         success: false,
-        message: "cart is empty.",
+        message: "Cart Is Empty!",
       });
     } else {
       return res.status(200).json({
         success: true,
-        message: "get your cart.",
+        message: "Get Your Cart.",
         data: cart,
       });
     }
-    s;
   } catch (error) {
     console.log("==========>", error);
 
     return res.status(400).json({
       success: false,
-      message: "cart is empty",
+      message: "Cart Is Empty!",
       error,
     });
   }
