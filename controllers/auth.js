@@ -90,16 +90,25 @@ router.post("/signin", async (req, res) => {
     });
 });
 router.get("/logout", auth, (req, res) => {
-  req.session.destroy((err) => {
-    return res.status(400).json({
-      success: false,
-      message: "Something went wrong.",
+  try {
+    req.session.destroy((err) => {
+      return res.status(400).json({
+        success: false,
+        message: "Something went wrong.",
+      });
     });
-  });
-  return res.status(200).json({
-    success: true,
-    message: "Logged out successfully.",
-  });
+    console.log("===========>");
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully.",
+    });
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      message: "User is already logout. kindly login again please.",
+      err,
+    });
+  }
 });
 
 router.post("/request_reset_password", async (req, res) => {

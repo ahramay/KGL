@@ -51,6 +51,32 @@ const SendUsMessage = async (value) => {
   }
 };
 
+const subscribedEmail = async (value) => {
+  // let transporter = makeTransporter();
+
+  const mailOptions = {
+    // from: "family@klg.com", // sender address
+    from: value.email,
+    to: "dmaqsood691@gmail.com",
+    subject: "Welcome to LionsPride", // Subject line
+    text: "Welcome to LionsPride", // plain text body
+    template: "",
+    context: {
+      layout: "email",
+      heading: "Your account is Subscribe",
+    },
+    html: `<h3>Your account is Subscribe</h3><br>
+    Email:${value.email}<br>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("MAIL SENT");
+  } catch (e) {
+    console.log("EMAIL FAILED", e);
+  }
+};
+
 const sendVerificationEmail = async ({ to, verificationCode, logoImage }) => {
   let transporter = makeTransporter();
 
@@ -75,7 +101,7 @@ const sendVerificationEmail = async ({ to, verificationCode, logoImage }) => {
     console.log("EMAIL FAILED", e);
   }
 };
-module.exports = { resetPasswordEmail, SendUsMessage };
+module.exports = { resetPasswordEmail, SendUsMessage, subscribedEmail };
 
 // const makeTransporter = ({
 //   user = "admin@out-class.org",
