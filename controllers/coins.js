@@ -47,7 +47,7 @@ router.post("/redeemedcoins", auth, async (req, res) => {
     if (getRedeemed) {
       return res.status(400).json({
         success: false,
-        message: "This code has already been redeemed",
+        message: "this code is already used",
       });
     }
     console.log("========>getRedeemed", getRedeemed);
@@ -61,7 +61,7 @@ router.post("/redeemedcoins", auth, async (req, res) => {
     if (getTransaction.isRedeemed === true) {
       return res.status(400).json({
         success: false,
-        message: "This code has already been redeemed",
+        message: "This code Has already been redeemed",
       });
     }
     // const invalidTransaction = await Transaction.findOne({
@@ -148,7 +148,7 @@ router.post("/redeemedcoins", auth, async (req, res) => {
     console.log("=========>", error);
     return res.status(400).json({
       sucess: false,
-      message: "This is an invalid code.Kindly add the code again.",
+      message: "invalid code please try a new code.",
       //"Warning! Something went wrong with coin."
     });
   }
@@ -168,7 +168,7 @@ router.post("/deducted", auth, async (req, res) => {
     if (number > 1) {
       var paidcoins = parseInt(checkCoins.coins) - parseInt(number);
       console.log("........>paidcoins", paidcoins);
-      if (paidcoins <= 0) {
+      if (paidcoins < 0) {
         return res.status(400).json({
           success: false,
           message:
@@ -211,6 +211,7 @@ router.post("/deducted", auth, async (req, res) => {
     });
   }
 });
+
 router.post("/woncoins", auth, async (req, res) => {
   const { number } = req.body; //req.query;
   const id = res.id;
@@ -227,7 +228,7 @@ router.post("/woncoins", auth, async (req, res) => {
     if (number > 1) {
       var paidcoins = parseInt(checkCoins.coins) + parseInt(number);
       console.log("........>paidcoins", paidcoins);
-      if (paidcoins <= 0) {
+      if (paidcoins < 0) {
         return res.status(400).json({
           success: false,
           message:
