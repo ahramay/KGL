@@ -13,10 +13,10 @@ let transporter = nodemailer.createTransport({
 let resetPasswordEmail = async ({ to, link }) => {
   console.log(to, link);
   await transporter.sendMail({
-    from: 'KLG 👻" <noreply@bued.com>',
-    to: "alibaloch405060@gmail.com",
+    from: 'LoinsPride 👻" <noreply@LoinsPride.com>',
+    to,
     subject: "Reset Password",
-    html: `<h3>Welcome to KLG</h3><h4>Click the link to reset password</h4><hr><p>Your Verification link is ${link}</p>`,
+    html: `<h3>Welcome to LoinsPride</h3><h4>copy the code to reset password</h4><hr><p>Your Verification link is <h1>${link}</h1></p>`,
   });
 };
 
@@ -26,7 +26,7 @@ const SendUsMessage = async (value) => {
   const mailOptions = {
     // from: "family@klg.com", // sender address
     from: value.email,
-    to: "dmaqsood691@gmail.com",
+    to: "nawayla7@gmail.com",
     subject: "Send Us a Message", // Subject line
     text: "Welcome to LionsPride", // plain text body
     template: "",
@@ -57,7 +57,7 @@ const subscribedEmail = async (value) => {
   const mailOptions = {
     // from: "family@klg.com", // sender address
     from: value.email,
-    to: "dmaqsood691@gmail.com",
+    to: "nawayla7@gmail.com",
     subject: "Welcome to LionsPride", // Subject line
     text: "Welcome to LionsPride", // plain text body
     template: "",
@@ -102,27 +102,3 @@ const sendVerificationEmail = async ({ to, verificationCode, logoImage }) => {
   }
 };
 module.exports = { resetPasswordEmail, SendUsMessage, subscribedEmail };
-
-// const makeTransporter = ({
-//   user = "admin@out-class.org",
-//   pass = "synigbxlippylbxk",} = {}) => {
-//   let transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com",
-//     port: 465,
-//     secure: true, // true for 465, false for other ports
-//     auth: {
-//       user, // generated ethereal user
-//       pass, // generated ethereal password
-//     },
-//   });
-// const transporter=nodemailer.createTransport({
-//   host:"smtp.gmail.com",
-//   port:465,
-//   secure:true,//true for 465 ,false for other ports
-//   auth:{
-//     user:process.env.
-//   }
-// })
-//   transporter.use("compile", mailerHbs(hbsOptions));
-//   return transporter;
-// };

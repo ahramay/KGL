@@ -22,7 +22,7 @@ const sendaMessageSchema = new mongoose.Schema({
   },
 
   phone: {
-    type: String,
+    type: Number,
   },
   message: {
     type: String,
@@ -44,7 +44,7 @@ validateSendMessage = (data) => {
   const schema = Joi.object({
     name: Joi.string().min(3).trim(),
     email: Joi.string().trim(),
-    phone: Joi.string(),
+    phone: Joi.number(),
     address: Joi.string().trim(),
     message: Joi.string().trim(),
   });

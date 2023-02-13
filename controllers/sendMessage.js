@@ -8,6 +8,7 @@ const {
   validateSubscribeEmail,
 } = require("../models/Subscribedemail");
 const { auth, admin } = require("../middlewares/authorize");
+
 router.post("/", auth, async (req, res) => {
   const owner = res.id;
   let { value, error } = validateSendMessage(req.body); //need to add the req.body
@@ -18,9 +19,17 @@ router.post("/", auth, async (req, res) => {
       message: error.details[0].message,
     });
   }
+  const { email } = value;
+  const previousUser = await Sendmessage.findOne({ email });
+  console.log(previousUser);
+  if (previousUser) {
+    return res.status(400).json({
+      message: "Email Already exist.",
+    });
+  }
   SendUsMessage(
     value
-    // to: "alibaloch405060@gmail.com",
+    // to: "@gmail.com",
   );
   value.owner = owner;
   const createMessage = await Sendmessage(value).save();
@@ -33,6 +42,7 @@ router.post("/", auth, async (req, res) => {
   return res.status(200).json({
     success: true,
     message: " Send Successfully",
+    data: createMessage,
   });
 });
 
