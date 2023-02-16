@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const makeTokens = require("../services/maketokens");
@@ -9,6 +10,11 @@ const { customAlphabet } = require("nanoid");
 const nanoid = customAlphabet("1234567890", 6);
 const { auth, admin } = require("../middlewares/authorize");
 const { resetPasswordEmail } = require("../services/mailer");
+const session = require("express-session");
+const { Session } = require("express-session");
+const cookieParser = require("cookie-parser");
+const { setDriver } = require("mongoose");
+const { json } = require("body-parser");
 
 router.post("/signup", async (req, res) => {
   const { firstName, lastName, username, email, password } = req.body;
@@ -27,7 +33,6 @@ router.post("/signup", async (req, res) => {
       message: "Username Already exist.",
     });
   }
-
   let salt = await bcrypt.genSalt();
   const passwordHashed = await bcrypt.hash(password, salt);
   User.create({
@@ -54,7 +59,7 @@ router.post("/signin", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username) {
-    return res.status(400).json({ message: "userName is required." });
+    return res.status(400).json({ message: "Username is required." });
   }
   if (!password) {
     return res.status(400).json({ message: "Password is required." });
@@ -71,15 +76,14 @@ router.post("/signin", async (req, res) => {
       } else {
         bcrypt.compare(password, user.password, async (err, auth) => {
           if (!auth) {
-            return res.status(400).json({ message: "Invalid credentials." });
+            return res.status(400).json({ message: "Invalid Credentials." });
           } else {
-             
             token = makeTokens(user._id);
-            return res
-            .send({ token:  token.token,user:user, message: "logged in successfully" })
-           
-              .status(200)
-             
+            return res.status(200).send({
+              token: token.token,
+              user: user,
+              message: "logged in successfully",
+            });
           }
         });
       }
@@ -112,7 +116,6 @@ router.get("/logout", auth, (req, res) => {
 });
 
 router.post("/request_reset_password", async (req, res) => {
-
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
@@ -123,8 +126,8 @@ router.post("/request_reset_password", async (req, res) => {
   }
   let code = nanoid();
   console.log("========>code", code);
-  const cipher = cryptr.encrypt(code);
-  console.log("========>cipher", cipher);
+  // const cipher = cryptr.encrypt(code);
+  // console.log("========>cipher", cipher);
   user.code = code;
   await user.save();
 
@@ -132,9 +135,9 @@ router.post("/request_reset_password", async (req, res) => {
     user.code = null;
     await user.save();
   }, "180000");
-  const link = `https://google.com/${cipher}`;
+  const link = code; //`https://google.com/${cipher}`;
   resetPasswordEmail({
-    to: "muhammad.usman@zeikh.com",
+    to: email,
     link,
   });
 
@@ -147,15 +150,19 @@ router.post("/request_reset_password", async (req, res) => {
 
 router.post("/reset_password/:code", async (req, res) => {
   const { code } = req.params;
-  const { email, password } = req.body;
-  const decryptedString = cryptr.decrypt(code);
-  const user = await User.findOne({ email });
+  let { email, password } = req.body;
+  console.log("======>email", email);
+  let decryptedString = code; // cryptr.decrypt(code);
+  let user = await User.findOne({ email });
   if (!user) {
     res.status(200).json({
       success: false,
       message: "User not found.",
     });
   }
+  console.log("======>user", user);
+  console.log("======>user.code", user.code);
+  console.log("======>code", code);
 
   if (user.code != decryptedString) {
     return res.status(400).json({

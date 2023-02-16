@@ -12,6 +12,7 @@ router.get("/getcart", auth, async (req, res) => {
     const cartProduct = await Cart.findOne({ owner: owner, isDeleted: false });
     const itemIndex = cartProduct.items.findIndex((item) => item.itemId);
     if (itemIndex <= -1) {
+      // on ahmed bhai demand
       return res.status(200).json({
         success: true,
         message: "Cart Is Empty!",
@@ -19,7 +20,7 @@ router.get("/getcart", auth, async (req, res) => {
     }
     const cart = await Cart.findOne({ owner: owner, isDeleted: false });
     if (!cart) {
-      //&& cart.items.length < 0
+      //&& cart.items.length < 0// on ahmed bhai demand
       return res.status(200).json({
         success: true,
         message: "Cart Is Empty!",
@@ -158,7 +159,7 @@ router.delete("/deleteitem", auth, async (req, res) => {
     let cart = await Cart.findOne({ owner: owner, isDeleted: false });
 
     const itemIndex = cart.items.findIndex((item) => item.itemId == itemId);
-    if (itemIndex < 0) {
+    if (itemIndex <= -1) {
       return res.status(400).json({
         success: false,
         message: "there is no product in cart",

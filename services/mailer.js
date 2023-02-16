@@ -8,6 +8,10 @@ let transporter = nodemailer.createTransport({
     user: process.env.EMAIL, // generated ethereal user
     pass: process.env.pass, // generated ethereal password
   },
+
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 let resetPasswordEmail = async ({ to, link }) => {

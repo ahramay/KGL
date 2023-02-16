@@ -7,10 +7,7 @@ const { Order } = require("../models/Order");
 const { Redeemed } = require("../models/Redeemed");
 const { auth, admin } = require("../middlewares/authorize");
 const { User } = require("../models/User");
-const {
-  Testtransaction,
-  validateTesttransaction,
-} = require("../models/Testtransaction");
+
 const { customAlphabet } = require("nanoid");
 let publishKey = process.env.Stripe_Publishable_key;
 let secretKey = process.env.Stripe_Secret_key;
@@ -105,7 +102,7 @@ router.get("/getpubkey", auth, async (req, res) => {
     });
   }
 });
-
+//api/v1/checkout/purchase
 router.post("/purchase", auth, async (req, res) => {
   try {
     var owner = res.id;

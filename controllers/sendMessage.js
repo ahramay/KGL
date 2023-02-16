@@ -14,19 +14,20 @@ router.post("/", auth, async (req, res) => {
   let { value, error } = validateSendMessage(req.body); //need to add the req.body
   console.log("========>value", value);
   if (error) {
-    res.status(400).send({
+    return res.status(400).send({
       success: false,
       message: error.details[0].message,
     });
   }
-  const { email } = value;
-  const previousUser = await Sendmessage.findOne({ email });
-  console.log(previousUser);
-  if (previousUser) {
-    return res.status(400).json({
-      message: "Email Already exist.",
-    });
-  }
+  // const { email } = value;
+  // const previousUser = await Sendmessage.findOne({ email });
+  // console.log(previousUser);
+  // if (previousUser) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "Email Already exist.",
+  //   });
+  // }
   SendUsMessage(
     value
     // to: "@gmail.com",
