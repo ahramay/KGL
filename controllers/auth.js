@@ -93,21 +93,24 @@ router.post("/signin", async (req, res) => {
       return res.status(500).json({ message: "Something went wrong." });
     });
 });
-router.get("/logout", auth, (req, res) => {
+router.get("/logout", auth, async (req, res) => {
   try {
-    req.session.destroy((err) => {
+    const logoutUser = await req.session.destroy();
+
+    if (!logoutUser) {
       return res.status(400).json({
         success: false,
         message: "Something went wrong.",
+        err,
       });
-    });
-    console.log("===========>");
-    return res.status(200).json({
+    }
+    console.log("===========>logoutUser");
+    res.status(200).json({
       success: true,
       message: "Logged out successfully.",
     });
   } catch (err) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "User is already logout. kindly login again please.",
       err,
