@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-// const maxAge = (3 * 60 * 60);
 const maxAge = process.env.TOKEN_AGE * 1;
 
 function makeToken(id, req, res) {

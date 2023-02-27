@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const { isEmail } = require("validator");
 const moment = require("moment");
+const Joi = require("joi");
+
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -49,17 +51,25 @@ const userSchema = new mongoose.Schema({
   code: {
     type: Number,
   },
+  phoneno: {
+    type: Number,
+  },
   lastlogin: {
     type: Date,
   },
-  created: {
+  createdAt: {
     type: Date,
     default: moment().format(),
     required: true,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-module.exports.User = mongoose.model("user", userSchema);
+const User = mongoose.model("user", userSchema);
+
 // coins: {
 //   //  freeCoins: {
 //   //     type: Number,
@@ -70,3 +80,24 @@ module.exports.User = mongoose.model("user", userSchema);
 //     default: "0",
 //   },
 // },
+function validateChangePassword(data) {
+  const schema = Joi.object({
+    password: Joi.string().min(5).max(30).required(),
+  });
+  return schema.validate(data);
+}
+
+function validateUpdateUser(data) {
+  const schema = Joi.object({
+    firstName: Joi.string().min(1).lowercase(),
+    username: Joi.string().min(1).lowercase(),
+    phoneno: Joi.number(),
+    email: Joi.string().min(5).max(50).allow("", null).lowercase(),
+    currentpassword: Joi.string().min(5).allow("", null),
+    password: Joi.string().min(5).allow("", null),
+    confirmPassword: Joi.string().valid(Joi.ref("password")).allow("", null),
+  });
+  return schema.validate(data);
+}
+
+module.exports = { User, validateUpdateUser, validateChangePassword };

@@ -3,7 +3,11 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const makeTokens = require("../services/maketokens");
-const { User } = require("../models/User");
+const {
+  User,
+  validateUpdateUser,
+  validateChangePassword,
+} = require("../models/User");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("myTotallyabcSecretKey");
 const { customAlphabet } = require("nanoid");
@@ -15,6 +19,9 @@ const { Session } = require("express-session");
 const cookieParser = require("cookie-parser");
 const { setDriver } = require("mongoose");
 const { json } = require("body-parser");
+const moment = require("moment");
+const { UserLogoutSession } = require("../models/Userlogoutsession");
+const { Logincoins } = require("../models/Logincoins");
 
 router.post("/signup", async (req, res) => {
   const { firstName, lastName, username, email, password } = req.body;
@@ -205,4 +212,101 @@ router.get("/getuser", auth, async (req, res) => {
     message: "successfully find user",
   });
 });
+
+router.put("/update_profile", auth, async (req, res) => {
+  const id = res.id;
+  let { value, error } = validateUpdateUser(req.body);
+
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+    });
+  }
+
+  const getUser = await User.findOne({ _id: id });
+  const { firstName, username, phoneno, email, currentpassword, password } =
+    value;
+
+  const data = {
+    firstName,
+    username,
+    email,
+    phoneno,
+    currentpassword,
+    password,
+  };
+  console.log("======>data", data);
+  
+  if (currentpassword) {
+    bcrypt.compare(currentpassword, getUser.password, async (err, auth) => {
+      if (!auth) {
+        return res.status(400).json({
+          success: false,
+          message: "old password is not matched, try again.",
+        });
+      }
+    });
+  }
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    data.password = await bcrypt.hash(password, salt);
+  }
+
+  // data.dateOfBirth = moment(value.dateOfBirth, "DD/MM/YYYY").toDate();
+
+  const updatedUser = await User.findByIdAndUpdate(
+    getUser._id,
+    { $set: data },
+    { new: true }
+  );
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    message: "User Profile updated successfully",
+  });
+});
+
+router.delete("/deleteuser", auth, async (req, res) => {
+  const id = res.id;
+  console.log("==========>", id);
+  const { value, error } = validateChangePassword(req.body);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+    });
+  }
+
+  const findUser = await User.findOne({ _id: id });
+  if (!findUser) {
+    return res.status(400).json({
+      success: false,
+      message: "this user is not exists",
+    });
+  }
+
+  const { password } = value;
+
+  const validPassword = await bcrypt.compare(password, findUser.password);
+  if (!validPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Password",
+    });
+  }
+
+  const delUser = await User.findOneAndDelete({ _id: findUser._id });
+  if (!delUser) {
+    return res.status(400).json({
+      success: false,
+      message: "this user is not exists",
+    });
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Your Account Deleted Successfully",
+  });
+});
+
 module.exports = router;

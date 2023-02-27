@@ -1,5 +1,6 @@
 const { date } = require("joi");
 const mongoose = require("mongoose");
+const moment = require("moment");
 const ObjectID = mongoose.Schema.Types.ObjectId;
 const transactionSchema = new mongoose.Schema({
   owner: {
@@ -37,7 +38,7 @@ const transactionSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: new Date(),
+    default: moment().format(),
   },
 
   isDeleted: {
