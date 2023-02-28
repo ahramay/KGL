@@ -321,7 +321,7 @@ router.put("/change_password", auth, async (req, res) => {
     message: "Updated User Password Successfully",
   });
 });
-router.delete("/deleteuser", auth, async (req, res) => {
+router.put("/deleteuser", auth, async (req, res) => {
   const id = res.id;
   console.log("==========>", id);
   const { value, error } = validateDeleteUserPassword(req.body);
