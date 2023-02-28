@@ -80,9 +80,18 @@ const User = mongoose.model("user", userSchema);
 //     default: "0",
 //   },
 // },
+function validateDeleteUserPassword(data) {
+  const schema = Joi.object({
+    password: Joi.string().min(5).max(30).required(),
+  });
+  return schema.validate(data);
+}
+
 function validateChangePassword(data) {
   const schema = Joi.object({
     password: Joi.string().min(5).max(30).required(),
+    currentpassword: Joi.string().min(5).required(),
+    confirmPassword: Joi.string().valid(Joi.ref("password")).required(),
   });
   return schema.validate(data);
 }
@@ -100,4 +109,9 @@ function validateUpdateUser(data) {
   return schema.validate(data);
 }
 
-module.exports = { User, validateUpdateUser, validateChangePassword };
+module.exports = {
+  User,
+  validateUpdateUser,
+  validateChangePassword,
+  validateDeleteUserPassword,
+};

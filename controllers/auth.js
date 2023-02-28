@@ -7,6 +7,7 @@ const {
   User,
   validateUpdateUser,
   validateChangePassword,
+  validateDeleteUserPassword
 } = require("../models/User");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("myTotallyabcSecretKey");
@@ -323,7 +324,7 @@ router.put("/change_password", auth, async (req, res) => {
 router.delete("/deleteuser", auth, async (req, res) => {
   const id = res.id;
   console.log("==========>", id);
-  const { value, error } = validateChangePassword(req.body);
+  const { value, error } = validateDeleteUserPassword(req.body);
   if (error) {
     return res.status(400).json({
       success: false,
@@ -341,6 +342,11 @@ router.delete("/deleteuser", auth, async (req, res) => {
 
   const { password } = value;
 
+  if (!password) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Password is required." });
+  }
   const validPassword = await bcrypt.compare(password, findUser.password);
   if (!validPassword) {
     return res.status(400).json({
