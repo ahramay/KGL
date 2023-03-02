@@ -214,6 +214,24 @@ router.get("/getuser", auth, async (req, res) => {
   });
 });
 
+router.get("/getusercoins", auth, async (req, res) => {
+  const userId = res.id;
+  console.log("========>", userId);
+  const getUserCoins = await User.findOne({ _id: userId }).select("coins");
+
+  if (!getUserCoins) {
+    return res.status(400).json({
+      success: false,
+      message: "this user is not exist",
+    });
+  }
+  return res.status(200).json({
+    success: true,
+    data: getUserCoins,
+    message: "User coins",
+  });
+});
+
 router.put("/update_profile", auth, async (req, res) => {
   const id = res.id;
   let { value, error } = validateUpdateUser(req.body);
