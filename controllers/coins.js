@@ -152,7 +152,7 @@ router.post("/deducted", auth, async (req, res) => {
     var minusCoins = parseInt(number);
     console.log("........>minusCoins", minusCoins);
 
-    if (number > 1) {
+    if (number >= 1) {
       var paidcoins = parseInt(checkCoins.coins) - parseInt(number);
       console.log("........>paidcoins", paidcoins);
       if (paidcoins < 0) {
@@ -208,10 +208,10 @@ router.post("/woncoins", auth, async (req, res) => {
     const checkCoins = await User.findOne({ _id: id });
 
     var AddCoins = parseInt(number);
-    console.log("........>minusCoins", AddCoins);
+    console.log("........>plusCoins", AddCoins);
     console.log("........>", checkCoins);
 
-    if (number > 1) {
+    if (number >= 1) {
       const mathRound = Math.round(number);
       console.log("================>mathRound", mathRound);
       var paidcoins = parseInt(checkCoins.coins) + mathRound; // new update add float point value to nearest integer
