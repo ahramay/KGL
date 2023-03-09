@@ -386,4 +386,80 @@ router.put("/deleteuser", auth, async (req, res) => {
   });
 });
 
+router.post("/givefreecoin", admin, async (req, res) => {
+  try {
+    const PlusOneCoin = 1;
+
+    const { value, error } = addCoinsByEmail(req.body);
+    console.log("============>value", value);
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: error.details[0].message,
+      });
+    }
+    // const getAdmin = await User.findOne({
+    //   _id: userId,
+    //   role: "ADMIN",
+    //   isAdmin: true,
+    // });
+    const { email } = value;
+    const getUser = await User.findOne({ email: email });
+    if (!getUser) {
+      res.status(400).json({
+        success: false,
+        message: `User with this Email does not exists`,
+      });
+    }
+
+    const updateCoins = parseInt(getUser.coins) + PlusOneCoin;
+    const updateUserCoins = await User.findOneAndUpdate(
+      { email: email },
+      { coins: updateCoins },
+      { new: true }
+    );
+    if (!updateUserCoins) {
+      res.status(400).json({
+        success: false,
+        message: `Your User Coins Is Not Updated`,
+      });
+    }
+    const getCoinsFromFreeCoins = await Logincoins.findOne({
+      owner: getUser._id,
+    });
+    if (!getCoinsFromFreeCoins) {
+      await Logincoins.create({ owner: getUser._id, freecoins: PlusOneCoin });
+
+      return res.status(200).json({
+        success: true,
+        data: updateUserCoins,
+        message: `Free Coins Added To User`,
+      });
+    }
+    const updatedAddCoins =
+      parseInt(getCoinsFromFreeCoins.freecoins) + PlusOneCoin;
+    const updatedCoinsFromFreeCoins = await Logincoins.findOneAndUpdate(
+      { owner: getUser._id },
+      { freecoins: updatedAddCoins },
+      { new: true }
+    );
+
+    const getEmailUser = await User.findOne({
+      _id: getUser._id,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: getEmailUser,
+      message: `Free Coins Added To User`,
+    });
+  } catch (error) {
+    console.log("==================>error", error);
+    res.status(400).json({
+      success: false,
+      message: `Something Went Wrong With This API `,
+    });
+  }
+});
+
 module.exports = router;

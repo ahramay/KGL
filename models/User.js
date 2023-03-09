@@ -3,6 +3,10 @@ const { isEmail } = require("validator");
 const moment = require("moment");
 const Joi = require("joi");
 
+// const userRoles = {
+//   User: "User",
+//   ADMIN: "ADMIN",
+// };
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -33,7 +37,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["USER", "ADMIN", "SUPER_ADMIN"],
+    enum: ["USER", "ADMIN"],
     default: "USER",
   },
   image: {
@@ -57,6 +61,10 @@ const userSchema = new mongoose.Schema({
   lastlogin: {
     type: Date,
   },
+  // role: {
+  //   type: String,
+  //   default: userRoles.User,
+  // },
   createdAt: {
     type: Date,
     default: moment().format(),
@@ -80,13 +88,6 @@ const User = mongoose.model("user", userSchema);
 //     default: "0",
 //   },
 // },
-function validateDeleteUserPassword(data) {
-  const schema = Joi.object({
-    password: Joi.string().min(5).max(30).required(),
-  });
-  return schema.validate(data);
-}
-
 function validateChangePassword(data) {
   const schema = Joi.object({
     password: Joi.string().min(5).max(30).required(),
@@ -102,16 +103,26 @@ function validateUpdateUser(data) {
     username: Joi.string().min(1).lowercase(),
     phoneno: Joi.number(),
     email: Joi.string().min(5).max(50).allow("", null).lowercase(),
-    currentpassword: Joi.string().min(5).allow("", null),
-    password: Joi.string().min(5).allow("", null),
-    confirmPassword: Joi.string().valid(Joi.ref("password")).allow("", null),
   });
   return schema.validate(data);
 }
 
+function validateDeleteUserPassword(data) {
+  const schema = Joi.object({
+    password: Joi.string().min(5).max(30).required(),
+  });
+  return schema.validate(data);
+}
+function addCoinsByEmail(data) {
+  const schema = Joi.object({
+    email: Joi.string().email().min(5).max(50).required().trim(),
+  });
+  return schema.validate(data);
+}
 module.exports = {
   User,
   validateUpdateUser,
   validateChangePassword,
   validateDeleteUserPassword,
+  addCoinsByEmail,
 };

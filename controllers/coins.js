@@ -68,13 +68,16 @@ router.post("/redeemedcoins", auth, async (req, res) => {
       // isRedeemed: false,
     });
 
+    let acutalPlusBonusCoins = addCoin.payment * 10; // upgrade here
+    console.log("=======>acutalPlusBonusCoins", acutalPlusBonusCoins);
     let getUserCoins = await User.findOne({ _id: id });
 
     if (addCoin) {
       console.log("..........>addCoin", addCoin);
       var addedCoins = addCoin.payment; // parseInt(addCoin.payment);
       console.log("..........>getUserCoins.coins", getUserCoins.coins);
-      var paidcoins = parseInt(getUserCoins.coins) + parseInt(addCoin.payment);
+      var paidcoins =
+        parseInt(getUserCoins.coins) + parseInt(acutalPlusBonusCoins); // upgrade here
       //parseInt(getUserCoins.coins)
       console.log("/..........paidcoins", paidcoins);
       const AddedUser = await User.findOneAndUpdate(
@@ -209,7 +212,9 @@ router.post("/woncoins", auth, async (req, res) => {
     console.log("........>", checkCoins);
 
     if (number > 1) {
-      var paidcoins = parseInt(checkCoins.coins) + parseInt(number);
+      const mathRound = Math.round(number);
+      console.log("================>mathRound", mathRound);
+      var paidcoins = parseInt(checkCoins.coins) + mathRound; // new update add float point value to nearest integer
       console.log("........>paidcoins", paidcoins);
       if (paidcoins < 0) {
         return res.status(400).json({
