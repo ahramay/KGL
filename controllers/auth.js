@@ -7,7 +7,8 @@ const {
   User,
   validateUpdateUser,
   validateChangePassword,
-  validateDeleteUserPassword
+  validateDeleteUserPassword,
+  addCoinsByEmail,
 } = require("../models/User");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("myTotallyabcSecretKey");
