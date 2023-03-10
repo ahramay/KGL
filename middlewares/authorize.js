@@ -9,7 +9,7 @@ const auth = async (req, res, next) => {
     req.cookies.access_token ||
     req.header("x-auth-token");
   if (!token) {
-    return res.status(400).json({
+    return res.status(401).json({
       message: "No token provided.",
     });
   }
@@ -36,6 +36,10 @@ const auth = async (req, res, next) => {
         .catch((err) => {
           throw err;
         });
+    });
+  }else{
+    res.status(400).json({
+      message: "No token provided.",
     });
   }
 };
