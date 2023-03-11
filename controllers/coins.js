@@ -68,7 +68,7 @@ router.post("/redeemedcoins", auth, async (req, res) => {
       // isRedeemed: false,
     });
 
-    let acutalPlusBonusCoins = addCoin.payment * 10; // upgrade here
+    let acutalPlusBonusCoins = addCoin.payment * 100; // upgrade here
     console.log("=======>acutalPlusBonusCoins", acutalPlusBonusCoins);
     let getUserCoins = await User.findOne({ _id: id });
 
